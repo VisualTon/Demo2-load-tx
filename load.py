@@ -6,59 +6,58 @@ from datetime import datetime
 
 my_list = []
 
-
 async def get_tx_info(txid: str):
     # get transaction info
     url = f"https://tonapi.io/v2/blockchain/transactions/{txid}"
-    response = await requests.get(url)
+    response = await get_request(url)
     # time.sleep(5)
-    if response.status_code == 200:
-        data = response.json()
-        in_msgs = data.get("in_msg", [])
-        if in_msgs:
-            sender_address = data["account"]["address"]
-            receiver_address = data["in_msg"]["destination"]["address"]
-            amount = int(data["in_msg"]["value"]) // 10**9
-            asset = "TON"
-            confirm_time = data["utime"]
+    data = response.json()
+    in_msgs = data.get("in_msg", [])
+    if in_msgs:
+        trans_id = data['hash']
+        sender_address = data["account"]["address"]
+        receiver_address = data["in_msg"]["destination"]["address"]
+        amount = int(data["in_msg"]["value"]) // 10**9
+        asset = "TON"
+        confirm_time = data["utime"]
 
-            if amount > 0 and sender_address != receiver_address:
-                in_msg_data = {
-                    "Sender_address": sender_address,
-                    "Receiver_address": receiver_address,
-                    "Amount": amount,
-                    "Confirm_time": confirm_time,
-                }
-                in_msg_data = json.dumps(in_msg_data)
-                my_list.append(in_msg_data)
-
-        else:
-            print("doesn't get in_msg in get_tx_info()")
-
-        out_msgs = data.get("out_msgs", [])
-        if out_msgs:
-            sender_address = data["account"]["address"]
-            receiver_address = data["out_msgs"][0]["destination"]["address"]
-            amount = int(data["out_msgs"][0]["value"]) // 10**9
-            asset = "TON"
-            confirm_time = data["utime"]
-
-            if amount > 0 and sender_address != receiver_address:
-                out_msgs_data = {
-                    "Sender_address": sender_address,
-                    "Receiver_address": receiver_address,
-                    "Amount": amount,
-                    "Confirm_time": confirm_time,
-                }
-                out_msgs_data = json.dumps(out_msgs_data, indent=2)
-                my_list.append(out_msgs_data)
-        """
-        else:
-            print("doesn't get out_msgs in get_tx_info()\n")
-        """
+        if amount > 0 and sender_address != receiver_address:
+            in_msg_data = {
+                "Transaction_id": trans_id,
+                "Sender_address": sender_address,
+                "Receiver_address": receiver_address,
+                "Amount": amount,
+                "Confirm_time": confirm_time,
+            }
+            in_msg_data = json.dumps(in_msg_data)
+            my_list.append(in_msg_data)
 
     else:
-        print("Request failed with status code:", response.status_code)
+        print("doesn't get in_msg in get_tx_info()")
+
+    out_msgs = data.get("out_msgs", [])
+    if out_msgs:
+        trans_id = data['hash']
+        sender_address = data["account"]["address"]
+        receiver_address = data["out_msgs"][0]["destination"]["address"]
+        amount = int(data["out_msgs"][0]["value"]) // 10**9
+        asset = "TON"
+        confirm_time = data["utime"]
+
+        if amount > 0 and sender_address != receiver_address:
+            out_msgs_data = {
+                "Transaction_id": trans_id,
+                "Sender_address": sender_address,
+                "Receiver_address": receiver_address,
+                "Amount": amount,
+                "Confirm_time": confirm_time,
+            }
+            out_msgs_data = json.dumps(out_msgs_data, indent=2)
+            my_list.append(out_msgs_data)
+    """
+    else:
+        print("doesn't get out_msgs in get_tx_info()\n")
+    """
 
 
 async def get_request(block_url):
